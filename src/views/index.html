@@ -1,0 +1,21 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="../styles/index.css" />
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="title">Log Cleaner</h1>
+        <div class="countdown" id="count"></div>
+        <button class="btn" id="start">Start</button>
+    </div>
+    <p>
+        Estamos usando node <script>document.write(process.versions.node)</script>,
+        Chrome <script>document.write(process.versions.chrome)</script>,
+        y Electron <script>document.write(process.versions.electron)</script>.
+    </p>
+    <script>require('../scripts/renderer')</script>
+</body>
+
+</html>
