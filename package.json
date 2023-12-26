@@ -2,14 +2,29 @@
   "name": "log-cleaner",
   "version": "1.0.0",
   "description": "Administrate logs",
-  "main": "src/main.js",
+  "main": "index.ts",
+  "bin": "./build/index.js",
   "scripts": {
-    "start": "electron ."
+    "start": "ts-node --transpile-only ./src/index.ts",
+    "build": "tsc",
+    "build-check": "tsc --noEmit",
+    "pkg": "pkg ./build/"
   },
+  "pkg": {
+    "targets": [
+      "node16-win-x64"
+    ],
+    "outputPath": "bin"
+  },
+  "repository": "https://github.com/jmveigac/log-cleaner",
   "keywords": [],
   "author": "jmveigac",
   "license": "ISC",
   "devDependencies": {
-    "electron-prebuilt": "^1.4.13"
+    "@types/node": "^20.8.6",
+    "pkg": "^5.8.1",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.2.2"
   }
 }
