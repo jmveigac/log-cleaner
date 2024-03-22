@@ -1,0 +1,2 @@
+regex
+pyinstaller>=4.3
