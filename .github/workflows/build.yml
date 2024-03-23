@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: log-cleaner
-          path: output/log-cleaner.exe
+          path: ./output/log-cleaner.exe
       # - name: Create Executable
       #   run: |
       #     pyinstaller --noconfirm --onefile --windowed --name "log-cleaner"  "main.py"
