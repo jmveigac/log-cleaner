@@ -14,15 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.10
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest
+          pip install flake8
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Lint with flake8
         run: |
@@ -30,37 +30,11 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      # - name: Test with pytest
-      #   run: |
-      #     pytest
       - name: Create Executable
         run: |
-          pyinstaller --noconfirm --onefile --windowed --name "log-cleaner.exe"  "main.py"
+          pyinstaller --noconfirm --onefile --windowed --name "log-cleaner"  "main.py"
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
-          name: log-cleaner
-          path: dist/log-cleaner.exe
-      # - name: Create Release
-      #   id: create_release
-      #   uses: actions/create-release@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     tag_name: ${{ github.event.head_commit.message }}
-      #     release_name: ${{ github.event.head_commit.message }}
-      #     overwrite: true
-      #     body: |
-      #       Test Release v1.0.0
-      #     draft: false
-      #     prerelease: false
-      # - name: Upload Release Asset
-      #   id: upload-release-asset
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{steps.create_release.outputs.upload_url}}
-      #     asset_path: output/log-cleaner.exe
-      #     asset_name: log-cleaner.exe
-      #     asset_content_type: application/zip
+          name: log-cleaner.exe
+          path: dist/log-cleaner
