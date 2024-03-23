@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: log-cleaner
-          path: output/log-cleaner.exe
+          path: dist/log-cleaner.exe
       # - name: Create Release
       #   id: create_release
       #   uses: actions/create-release@v1
