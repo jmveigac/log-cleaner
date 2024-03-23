@@ -33,29 +33,34 @@ jobs:
       # - name: Test with pytest
       #   run: |
       #     pytest
-      - name: Create Executable
-        run: |
-          pyinstaller --noconfirm --onefile --windowed --name "log-cleaner"  "main.py"
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Archive Output
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ github.event.head_commit.message }}
-          release_name: ${{ github.event.head_commit.message }}
-          overwrite: true
-          body: |
-            Test Release v1.0.0
-          draft: false
-          prerelease: false
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{steps.create_release.outputs.upload_url}}
-          asset_path: output/log-cleaner.exe
-          asset_name: log-cleaner.exe
-          asset_content_type: application/zip
+          name: log-cleaner
+          path: output/log-cleaner.exe
+      # - name: Create Executable
+      #   run: |
+      #     pyinstaller --noconfirm --onefile --windowed --name "log-cleaner"  "main.py"
+      # - name: Create Release
+      #   id: create_release
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ github.event.head_commit.message }}
+      #     release_name: ${{ github.event.head_commit.message }}
+      #     overwrite: true
+      #     body: |
+      #       Test Release v1.0.0
+      #     draft: false
+      #     prerelease: false
+      # - name: Upload Release Asset
+      #   id: upload-release-asset
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{steps.create_release.outputs.upload_url}}
+      #     asset_path: output/log-cleaner.exe
+      #     asset_name: log-cleaner.exe
+      #     asset_content_type: application/zip
