@@ -58,6 +58,28 @@ def discover_log_files(target_dir: str | Path) -> tuple[CleanupCandidate, ...]:
     return tuple(candidates)
 
 
+def delete_log_files(
+    target_dir: str | Path,
+    candidate_paths: Sequence[str | Path],
+) -> CleanupReport:
+    """Delete exactly the supplied candidates after revalidating every path."""
+    root = Path(target_dir).expanduser().resolve(strict=True)
+    deleted: list[Path] = []
+    errors: list[str] = []
+    candidates: list[CleanupCandidate] = []
+
+    for candidate_path in candidate_paths:
+        try:
+            safe_path = validate_candidate(root, candidate_path)
+            candidates.append(CleanupCandidate(safe_path, safe_path.stat().st_size))
+            safe_path.unlink()
+            deleted.append(safe_path)
+        except (OSError, ValueError) as exc:
+            errors.append(f"{candidate_path}: {exc}")
+
+    return CleanupReport(root, tuple(candidates), tuple(deleted), tuple(errors), False)
+
+
 def cleanup_logs(target_dir: str | Path, *, delete: bool = False) -> CleanupReport:
     """Preview matching logs by default, deleting only when delete=True is explicit."""
     root = Path(target_dir).expanduser().resolve(strict=True)
@@ -66,18 +88,7 @@ def cleanup_logs(target_dir: str | Path, *, delete: bool = False) -> CleanupRepo
     if not delete:
         return CleanupReport(root, candidates, (), (), True)
 
-    deleted: list[Path] = []
-    errors: list[str] = []
-
-    for candidate in candidates:
-        try:
-            safe_path = validate_candidate(root, candidate.path)
-            safe_path.unlink()
-            deleted.append(safe_path)
-        except (OSError, ValueError) as exc:
-            errors.append(f"{candidate.path}: {exc}")
-
-    return CleanupReport(root, candidates, tuple(deleted), tuple(errors), False)
+    return delete_log_files(root, [candidate.path for candidate in candidates])
 
 
 def build_parser() -> argparse.ArgumentParser:
