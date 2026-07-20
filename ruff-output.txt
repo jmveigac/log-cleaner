@@ -1,0 +1,4 @@
+log_cleaner/cleanup.py:8:1: UP035 [*] Import from `collections.abc` instead: `Sequence`
+main.py:3:1: I001 [*] Import block is un-sorted or un-formatted
+Found 2 errors.
+[*] 2 fixable with the `--fix` option.
