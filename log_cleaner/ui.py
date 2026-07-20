@@ -6,7 +6,7 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 
-from log_cleaner.cleanup import CleanupReport, cleanup_logs
+from log_cleaner.cleanup import CleanupReport, cleanup_logs, delete_log_files
 from log_cleaner.log_parser import InvalidSearchPattern, LogDocument
 from log_cleaner.version import __version__
 
@@ -20,7 +20,6 @@ ACCENT = "#38bdf8"
 ACCENT_ACTIVE = "#0ea5e9"
 DANGER = "#ef4444"
 DANGER_ACTIVE = "#dc2626"
-SUCCESS = "#22c55e"
 
 
 class LogCleanerApp:
@@ -61,12 +60,18 @@ class LogCleanerApp:
     def _configure_styles(self) -> None:
         style = ttk.Style(self.root)
         style.theme_use("clam")
-
         style.configure("TFrame", background=BACKGROUND)
         style.configure("Surface.TFrame", background=SURFACE)
         style.configure("Card.TFrame", background=SURFACE_ALT)
         style.configure("TLabel", background=BACKGROUND, foreground=TEXT)
         style.configure("Muted.TLabel", foreground=MUTED)
+        style.configure("Surface.TLabel", background=SURFACE, foreground=MUTED)
+        style.configure(
+            "SurfaceTitle.TLabel",
+            background=SURFACE,
+            foreground=TEXT,
+            font=("Segoe UI Semibold", 12),
+        )
         style.configure(
             "Title.TLabel",
             font=("Segoe UI Semibold", 20),
@@ -134,11 +139,7 @@ class LogCleanerApp:
             bordercolor=BORDER,
             padding=7,
         )
-        style.configure(
-            "TCheckbutton",
-            background=BACKGROUND,
-            foreground=TEXT,
-        )
+        style.configure("TCheckbutton", background=BACKGROUND, foreground=TEXT)
         style.map("TCheckbutton", background=[("active", BACKGROUND)])
         style.configure("TNotebook", background=BACKGROUND, borderwidth=0)
         style.configure(
@@ -171,17 +172,14 @@ class LogCleanerApp:
     def _build_layout(self) -> None:
         container = ttk.Frame(self.root, padding=18)
         container.pack(fill=tk.BOTH, expand=True)
-
         self._build_header(container)
 
         notebook = ttk.Notebook(container)
         notebook.pack(fill=tk.BOTH, expand=True, pady=(14, 10))
-
         analyzer_tab = ttk.Frame(notebook, padding=16)
         cleanup_tab = ttk.Frame(notebook, padding=16)
         notebook.add(analyzer_tab, text="Analyze logs")
         notebook.add(cleanup_tab, text="Clean up logs")
-
         self._build_analyzer_tab(analyzer_tab)
         self._build_cleanup_tab(cleanup_tab)
 
@@ -201,18 +199,14 @@ class LogCleanerApp:
     def _build_header(self, parent: ttk.Frame) -> None:
         header = ttk.Frame(parent)
         header.pack(fill=tk.X)
-
         title_area = ttk.Frame(header)
         title_area.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        ttk.Label(title_area, text="Log Cleaner", style="Title.TLabel").pack(
-            side=tk.LEFT
-        )
+        ttk.Label(title_area, text="Log Cleaner", style="Title.TLabel").pack(side=tk.LEFT)
         ttk.Label(
             title_area,
             text=f"v{__version__}",
             style="Version.TLabel",
         ).pack(side=tk.LEFT, padx=(12, 0))
-
         ttk.Label(
             header,
             text="Inspect first. Filter quickly. Delete only when you mean it.",
@@ -262,8 +256,7 @@ class LogCleanerApp:
         ttk.Label(
             search_panel,
             text="Filter entries",
-            background=SURFACE,
-            foreground=TEXT,
+            style="SurfaceTitle.TLabel",
         ).grid(row=0, column=0, sticky=tk.W)
         search_entry = ttk.Entry(search_panel, textvariable=self.search_query)
         search_entry.grid(row=1, column=0, sticky=tk.EW, pady=(6, 0))
@@ -324,7 +317,6 @@ class LogCleanerApp:
         )
         self.results_text.pack(fill=tk.BOTH, expand=True)
         self.results_text.configure(state=tk.DISABLED)
-
         ttk.Label(
             parent,
             textvariable=self.analysis_status,
@@ -334,21 +326,14 @@ class LogCleanerApp:
     def _build_cleanup_tab(self, parent: ttk.Frame) -> None:
         notice = ttk.Frame(parent, style="Surface.TFrame", padding=14)
         notice.pack(fill=tk.X)
-        ttk.Label(
-            notice,
-            text="Safe cleanup",
-            background=SURFACE,
-            foreground=TEXT,
-            font=("Segoe UI Semibold", 12),
-        ).pack(anchor=tk.W)
+        ttk.Label(notice, text="Safe cleanup", style="SurfaceTitle.TLabel").pack(anchor=tk.W)
         ttk.Label(
             notice,
             text=(
                 "Preview scans only .log files below the selected folder. "
                 "Deletion stays disabled until you explicitly enable it and confirm."
             ),
-            background=SURFACE,
-            foreground=MUTED,
+            style="Surface.TLabel",
         ).pack(anchor=tk.W, pady=(4, 0))
 
         folder_row = ttk.Frame(parent)
@@ -557,7 +542,8 @@ class LogCleanerApp:
             messagebox.showinfo("Preview required", "Run Preview cleanup before deleting.")
             return
 
-        count = len(self.cleanup_report.candidates)
+        preview = self.cleanup_report
+        count = len(preview.candidates)
         if count == 0:
             messagebox.showinfo("Nothing to delete", "The preview found no .log files.")
             return
@@ -565,20 +551,18 @@ class LogCleanerApp:
         confirmed = messagebox.askyesno(
             "Confirm log deletion",
             (
-                f"Permanently delete {count} .log file(s) under:\n"
-                f"{self.cleanup_report.target_dir}\n\nThis cannot be undone."
+                f"Permanently delete the {count} previewed .log file(s) under:\n"
+                f"{preview.target_dir}\n\nThis cannot be undone."
             ),
             icon="warning",
         )
         if not confirmed:
             return
 
-        try:
-            report = cleanup_logs(self.cleanup_report.target_dir, delete=True)
-        except (OSError, ValueError) as exc:
-            messagebox.showerror("Cleanup failed", str(exc))
-            return
-
+        report = delete_log_files(
+            preview.target_dir,
+            [candidate.path for candidate in preview.candidates],
+        )
         self.cleanup_report = report
         self.delete_enabled.set(False)
         self._toggle_delete_button()
