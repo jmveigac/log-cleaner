@@ -1,9 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import runpy
 from pathlib import Path
 
-from log_cleaner.version import __version__
-
+__version__ = runpy.run_path("log_cleaner/version.py")["__version__"]
 version_parts = tuple(int(part) for part in __version__.split("."))
 file_version = version_parts + (0,) * (4 - len(version_parts))
 version_info_path = Path("build") / "version_info.txt"
