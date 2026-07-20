@@ -83,7 +83,10 @@ class LogDocument:
 
 
 def _group_entries(lines: list[str]) -> list[str]:
-    """Group stack traces and continuation lines under timestamped entries."""
+    """Group timestamped entries, falling back to one non-empty entry per line."""
+    if not any(ENTRY_START_PATTERN.match(line) for line in lines):
+        return [line.strip() for line in lines if line.strip()]
+
     entries: list[str] = []
     current: list[str] = []
 
