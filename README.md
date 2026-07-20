@@ -17,15 +17,17 @@ Current application version: **1.0.0**.
 - Require explicit delete mode and a confirmation before removing files.
 - Display the application version in the window and package a versioned Windows executable.
 
-## Run the Windows executable
+## Download the Windows executable
 
-GitHub Actions builds a Windows x64 executable after the `Check` and `Test` jobs pass. Open a successful workflow run and download the `log-cleaner-windows-x64` artifact. The executable filename includes the application version, for example:
+Successful pull requests build a Windows x64 executable as a temporary GitHub Actions artifact. After a merge to `master`, the same validated executable is published automatically in **GitHub Releases** when that application version does not already have a release.
+
+For version `1.0.0`, the release is `v1.0.0` and contains:
 
 ```text
 log-cleaner-v1.0.0-windows-x64.exe
 ```
 
-The same version is shown in the application title bar and footer.
+The same version is shown in the application title bar and footer. To publish a new release, update the application version in `log_cleaner/version.py` before merging the corresponding change into `master`.
 
 ## Analyze a log
 
@@ -116,12 +118,14 @@ Before relying on a new cleanup build, these manual cases complement the automat
 6. Attempt to validate a candidate outside the selected target directory and verify that it is rejected.
 7. Test a directory where a log cannot be deleted because of permissions and verify that the error is surfaced clearly.
 
-## Project quality and packaging
+## Project quality, packaging and releases
 
 Pull requests targeting `master` run three GitHub Actions jobs:
 
 - **Check**: Ruff linting and formatting validation on Python 3.14.6.
 - **Test**: pytest coverage for parsing, filtering, dry-run behavior, explicit deletion, path safety, and error reporting.
 - **Build Windows EXE**: PyInstaller packaging on Windows x64 after the check and test jobs pass, followed by artifact upload.
+
+After a successful push to `master`, **Publish GitHub Release** downloads that exact build artifact and creates release `vX.Y.Z` with the versioned `.exe` attached when the release does not already exist. Existing releases are left unchanged, so publishing a new binary requires incrementing the application version.
 
 Dependabot keeps the pinned Python development tools and GitHub Actions dependencies under review.
