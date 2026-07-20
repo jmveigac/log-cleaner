@@ -434,9 +434,7 @@ class LogCleanerApp:
         self.search_query.set("")
         self.current_results = list(self.document.entries)
         self._render_results()
-        self.analysis_status.set(
-            f"Loaded {self.document.name} · {human_size(summary.size_bytes)}"
-        )
+        self.analysis_status.set(f"Loaded {self.document.name} · {human_size(summary.size_bytes)}")
 
     def _run_search(self) -> None:
         if self.document is None:
