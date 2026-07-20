@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "log-cleaner"
+dynamic = ["version"]
+description = "Desktop utility for inspecting, filtering, exporting, and safely cleaning log files."
+requires-python = ">=3.14"
+
+[tool.setuptools.packages.find]
+include = ["log_cleaner*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "log_cleaner.version.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

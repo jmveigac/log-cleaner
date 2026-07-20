@@ -1,5 +1,9 @@
 *.log
+*.py[cod]
 __pycache__/
+.pytest_cache/
+.ruff_cache/
+.venv/
 output/
 dist/
 build/
