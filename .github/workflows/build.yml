@@ -1,4 +1,4 @@
-name: CI and Windows package
+name: CI, Windows package and release
 
 on:
   push:
@@ -70,3 +70,55 @@ jobs:
           path: dist/log-cleaner-v*-windows-x64.exe
           if-no-files-found: error
           retention-days: 30
+
+  release:
+    name: Publish GitHub Release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: build-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Windows executable
+        uses: actions/download-artifact@v4
+        with:
+          name: log-cleaner-windows-x64
+          path: release
+      - name: Resolve application version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          asset="$(find release -maxdepth 1 -type f -name 'log-cleaner-v*-windows-x64.exe' -print -quit)"
+          if [ -z "$asset" ]; then
+            echo "::error::Versioned Windows executable was not found."
+            exit 1
+          fi
+
+          filename="$(basename "$asset")"
+          version="${filename#log-cleaner-v}"
+          version="${version%-windows-x64.exe}"
+          tag="v${version}"
+
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - name: Publish release when version is new
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASSET: ${{ steps.version.outputs.asset }}
+          TAG: ${{ steps.version.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; skipping publication."
+            exit 0
+          fi
+
+          gh release create "$TAG" "$ASSET" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Log Cleaner $TAG" \
+            --generate-notes
